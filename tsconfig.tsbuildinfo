@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/index.tsx","./src/main.tsx","./src/components/menubutton.tsx","./src/components/statuscard.tsx","./src/pages/dashboard.tsx","./src/services/vehiclesimulator.ts","./src/types/vehicle.ts"],"version":"5.9.3"}
