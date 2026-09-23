@@ -8,6 +8,7 @@ import type { WindowState } from "../types/windows";
 interface VochoModelProps {
   windowPositions: WindowState;
   onWindowSelect?: (side: "driver" | "passenger") => void;
+  onOtherPartSelect?: () => void;
 }
 
 const WINDOW_TRAVEL = 1.2;
@@ -15,6 +16,7 @@ const WINDOW_TRAVEL = 1.2;
 export default function VochoModel({
   windowPositions,
   onWindowSelect,
+  onOtherPartSelect,
 }: VochoModelProps) {
   const { scene } = useGLTF("/models/vochoGris.glb");
   const baseY = useRef(new Map<string, number>());
@@ -61,16 +63,7 @@ export default function VochoModel({
         return    
     }
 
-   /* const selectedPart = Object.entries(VehiclePart).find(
-          ([modelPartName]) => modelPartName === object,
-        );
-
-    if (object === selectedPart?.[1]) {
-        onWindowSelect?.("driver")
-        return    
-    }
-    
-    onClickPart?.(object);*/
+    onOtherPartSelect?.();
   }  
 
   return (

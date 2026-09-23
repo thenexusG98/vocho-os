@@ -5,7 +5,11 @@ import { OrbitControls, Environment, Grid } from "@react-three/drei";
 import VochoModel from "../components/Vehicle3D";
 import WindowControls from "../components/windowControls";
 
-import { getWindowState, moveWindow } from "../services/windowService";
+import {
+  getWindowState,
+  moveWindow,
+  setWindowPosition,
+} from "../services/windowService";
 import type { windowSide, WindowState } from "../types/windows";
 
 export default function Vehicle() {
@@ -21,6 +25,12 @@ export default function Vehicle() {
         if (!selectedWindow) return;
 
         setWindows(moveWindow(selectedWindow, direction));
+    }
+
+    function setSelectedWindowPosition(position: number) {
+      if (!selectedWindow) return;
+
+      setWindows(setWindowPosition(selectedWindow, position));
     }
 
   return (
@@ -39,6 +49,8 @@ export default function Vehicle() {
           position={windows[selectedWindow]}
           onUp={() => moveSelectedWindow("up")}
           onDown={() => moveSelectedWindow("down")}
+          onFullyDown={() => setSelectedWindowPosition(0)}
+          onFullyUp={() => setSelectedWindowPosition(100)}
         />
       )}
 
@@ -65,6 +77,7 @@ export default function Vehicle() {
         <VochoModel
           windowPositions={windows}
           onWindowSelect={selectWindow}
+          onOtherPartSelect={() => setSelectedWindow(null)}
         />
 
         <OrbitControls enableDamping minDistance={6} maxDistance={35} />
