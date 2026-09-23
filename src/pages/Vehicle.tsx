@@ -10,6 +10,7 @@ import {
   moveWindow,
   setWindowPosition,
 } from "../services/windowService";
+import { getVehicleState, updateVehicleState } from "../services/vehicleSimulator";
 import type { windowSide, WindowState } from "../types/windows";
 
 interface VehicleProps {
@@ -19,6 +20,10 @@ interface VehicleProps {
 export default function Vehicle({ onBackToDashboard }: VehicleProps) {
 
     const [selectedWindow, setSelectedWindow] = useState<windowSide | null>(null);
+    const [selectedHeadlight, setSelectedHeadlight] = useState<
+      "faro_izquierdo" | "faro_derecho" | null
+    >(null);
+    const [lights, setLights] = useState(() => getVehicleState().lights);
     const [windows, setWindows] = useState<WindowState>(getWindowState());
 
     function selectWindow(side: windowSide) {
@@ -88,8 +93,18 @@ export default function Vehicle({ onBackToDashboard }: VehicleProps) {
 
         <VochoModel
           windowPositions={windows}
+          lights={lights}
+          selectedHeadlight={selectedHeadlight}
           onWindowSelect={selectWindow}
-          onOtherPartSelect={() => setSelectedWindow(null)}
+          onHeadlightSelect={(headlight) => {
+            setSelectedWindow(null);
+            const nextLights = !lights;
+            setLights(updateVehicleState({ lights: nextLights }).lights);
+            setSelectedHeadlight(nextLights ? headlight : null);
+          }}
+          onOtherPartSelect={() => {
+            setSelectedWindow(null);
+          }}
         />
 
         <OrbitControls enableDamping minDistance={6} maxDistance={35} />

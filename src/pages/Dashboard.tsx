@@ -108,6 +108,7 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
             />
             <VochoModel
               windowPositions={windowPositions}
+              lights={vehicle.lights}
               enablePartSelection={false}
               onModelClick={onVehicleClick}
             />
