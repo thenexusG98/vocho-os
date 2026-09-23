@@ -12,7 +12,11 @@ import {
 } from "../services/windowService";
 import type { windowSide, WindowState } from "../types/windows";
 
-export default function Vehicle() {
+interface VehicleProps {
+  onBackToDashboard: () => void;
+}
+
+export default function Vehicle({ onBackToDashboard }: VehicleProps) {
 
     const [selectedWindow, setSelectedWindow] = useState<windowSide | null>(null);
     const [windows, setWindows] = useState<WindowState>(getWindowState());
@@ -42,6 +46,14 @@ export default function Vehicle() {
 
         <p className="text-sm text-zinc-500">Control del vehículo</p>
       </div>
+
+      <button
+        type="button"
+        className="absolute top-6 right-6 z-10 rounded-xl bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
+        onClick={onBackToDashboard}
+      >
+        Volver al dashboard
+      </button>
 
       {selectedWindow && (
         <WindowControls

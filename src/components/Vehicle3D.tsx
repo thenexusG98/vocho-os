@@ -1,12 +1,14 @@
 import { useGLTF } from "@react-three/drei";
 import { ThreeEvent, useFrame } from "@react-three/fiber";
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { VehiclePart } from "../enums/vehiclePart";
 import { WINDOW_PARTS } from "../enums/windowParts";
 import type { WindowState } from "../types/windows";
 
 interface VochoModelProps {
   windowPositions: WindowState;
+  enablePartSelection?: boolean;
+  onModelClick?: () => void;
   onWindowSelect?: (side: "driver" | "passenger") => void;
   onOtherPartSelect?: () => void;
 }
@@ -15,10 +17,13 @@ const WINDOW_TRAVEL = 1.2;
 
 export default function VochoModel({
   windowPositions,
+  enablePartSelection = true,
+  onModelClick,
   onWindowSelect,
   onOtherPartSelect,
 }: VochoModelProps) {
   const { scene } = useGLTF("/models/vochoGris.glb");
+  const model = useMemo(() => scene.clone(true), [scene]);
   const baseY = useRef(new Map<string, number>());
 
   useFrame(() => {
@@ -28,7 +33,7 @@ export default function VochoModel({
     ];
 
     for (const windowNode of windowNodes) {
-      const object = scene.getObjectByName(windowNode.name);
+      const object = model.getObjectByName(windowNode.name);
       if (!object) continue;
 
       if (!baseY.current.has(windowNode.name)) {
@@ -45,6 +50,12 @@ export default function VochoModel({
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
+
+    if (!enablePartSelection) {
+      onModelClick?.();
+      return;
+    }
+
     const object = event.object.name;
 
     const selectedPart = Object.entries(VehiclePart).find(
@@ -68,10 +79,10 @@ export default function VochoModel({
 
   return (
     <primitive
-      object={scene}
+      object={model}
       scale={1}
       position={[0, 0, 0]}
-      onClick={handleClick}
+      onClick={enablePartSelection || onModelClick ? handleClick : undefined}
     />
   );
 }

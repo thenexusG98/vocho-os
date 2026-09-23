@@ -1,16 +1,25 @@
 import { useEffect, useState } from "react";
+import { Canvas } from "@react-three/fiber";
+import { Environment, Grid, OrbitControls } from "@react-three/drei";
 import StatusCard from "../components/StatusCard";
 import MenuButton from "../components/MenuButton";
+import VochoModel from "../components/Vehicle3D";
 
 import {
   getVehicleState,
   simulateVehicleState,
   updateVehicleState,
 } from "../services/vehicleSimulator";
+import { getWindowState } from "../services/windowService";
 import type { VehicleState } from "../types/vehicle";
 
-export default function Dashboard() {
+interface DashboardProps {
+  onVehicleClick: () => void;
+}
+
+export default function Dashboard({ onVehicleClick }: DashboardProps) {
   const [vehicle, setVehicle] = useState<VehicleState>(getVehicleState());
+  const [windowPositions] = useState(getWindowState);
 
   const [time, setTime] = useState(new Date());
 
@@ -78,6 +87,34 @@ export default function Dashboard() {
       {/* MAIN */}
 
       <main className="flex-1 p-6 overflow-auto">
+        {/* 3D VEHICLE */}
+
+        <section className="h-[420px] overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
+          <Canvas
+            camera={{
+              position: [14, 18, 34],
+              fov: 45,
+            }}
+          >
+            <ambientLight intensity={1} />
+            <directionalLight position={[5, 5, 5]} intensity={2} />
+            <Environment preset="city" />
+            <Grid
+              args={[20, 20]}
+              cellSize={1}
+              cellThickness={0.5}
+              sectionSize={5}
+              sectionThickness={1}
+            />
+            <VochoModel
+              windowPositions={windowPositions}
+              enablePartSelection={false}
+              onModelClick={onVehicleClick}
+            />
+            <OrbitControls enableDamping minDistance={6} maxDistance={35} />
+          </Canvas>
+        </section>
+
         {/* VEHICLE */}
 
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
