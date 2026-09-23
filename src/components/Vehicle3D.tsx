@@ -1,22 +1,76 @@
 import { useGLTF } from "@react-three/drei";
-import { ThreeEvent } from "@react-three/fiber";
+import { ThreeEvent, useFrame } from "@react-three/fiber";
+import { useRef } from "react";
+import { VehiclePart } from "../enums/vehiclePart";
+import { WINDOW_PARTS } from "../enums/windowParts";
+import type { WindowState } from "../types/windows";
 
 interface VochoModelProps {
-  onClickPart?: (partName: string) => void; 
+  windowPositions: WindowState;
+  onWindowSelect?: (side: "driver" | "passenger") => void;
 }
 
-export default function VochoModel({ onClickPart }: VochoModelProps) {
-  //vocho azul
-  //const { scene } = useGLTF("/models/vocho.gltf");
-  //vocho gris
+const WINDOW_TRAVEL = 1.2;
+
+export default function VochoModel({
+  windowPositions,
+  onWindowSelect,
+}: VochoModelProps) {
   const { scene } = useGLTF("/models/vochoGris.glb");
+  const baseY = useRef(new Map<string, number>());
+
+  useFrame(() => {
+    const windowNodes = [
+      { name: "polySurface329_blinn_negro_0", position: windowPositions.driver },
+      { name: "polySurface331_blinn_negro_0", position: windowPositions.passenger },
+    ];
+
+    for (const windowNode of windowNodes) {
+      const object = scene.getObjectByName(windowNode.name);
+      if (!object) continue;
+
+      if (!baseY.current.has(windowNode.name)) {
+        baseY.current.set(windowNode.name, object.position.y);
+      }
+
+      const closedY = baseY.current.get(windowNode.name) ?? object.position.y;
+      const targetY = closedY - ((100 - windowNode.position) / 100) * WINDOW_TRAVEL;
+      object.position.y += (targetY - object.position.y) * 0.12;
+    }
+  });
+
+  
 
   const handleClick = (event: ThreeEvent<MouseEvent>) => {
     event.stopPropagation();
     const object = event.object.name;
-    console.log("Clicked on part:", object);
+
+    const selectedPart = Object.entries(VehiclePart).find(
+          ([modelPartName]) => modelPartName === object,
+        );
+
+    console.log("Clicked on part:", selectedPart?.[1] ?? object);
+
+     if (selectedPart?.[1] === WINDOW_PARTS.driver) {
+        onWindowSelect?.("driver")
+        return    
+    }
+
+    if (selectedPart?.[1] === WINDOW_PARTS.passenger) {
+        onWindowSelect?.("passenger")
+        return    
+    }
+
+   /* const selectedPart = Object.entries(VehiclePart).find(
+          ([modelPartName]) => modelPartName === object,
+        );
+
+    if (object === selectedPart?.[1]) {
+        onWindowSelect?.("driver")
+        return    
+    }
     
-    onClickPart?.(object);
+    onClickPart?.(object);*/
   }  
 
   return (
@@ -28,7 +82,4 @@ export default function VochoModel({ onClickPart }: VochoModelProps) {
     />
   );
 }
- //vocho azul
-//useGLTF.preload("/models/vocho.gltf");
-//vocho gris
 useGLTF.preload("/models/vochoGris.glb");

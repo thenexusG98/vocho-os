@@ -1,17 +1,27 @@
+import { useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, Grid } from "@react-three/drei";
 
 import VochoModel from "../components/Vehicle3D";
-import { VehiclePart } from "../enums/vehiclePart";
+import WindowControls from "../components/windowControls";
+
+import { getWindowState, moveWindow } from "../services/windowService";
+import type { windowSide, WindowState } from "../types/windows";
 
 export default function Vehicle() {
-  function handlePartClick(partName: string) {
-    const selectedPart = Object.entries(VehiclePart).find(
-      ([modelPartName]) => modelPartName === partName,
-    );
 
-    console.log("Parte seleccionada:", selectedPart?.[1] ?? partName);
-  }
+    const [selectedWindow, setSelectedWindow] = useState<windowSide | null>(null);
+    const [windows, setWindows] = useState<WindowState>(getWindowState());
+
+    function selectWindow(side: windowSide) {
+        setSelectedWindow(side);
+    }
+
+    function moveSelectedWindow(direction: "up" | "down") {
+        if (!selectedWindow) return;
+
+        setWindows(moveWindow(selectedWindow, direction));
+    }
 
   return (
     <div className="w-full h-screen bg-black text-white">
@@ -22,6 +32,15 @@ export default function Vehicle() {
 
         <p className="text-sm text-zinc-500">Control del vehículo</p>
       </div>
+
+      {selectedWindow && (
+        <WindowControls
+          side={selectedWindow}
+          position={windows[selectedWindow]}
+          onUp={() => moveSelectedWindow("up")}
+          onDown={() => moveSelectedWindow("down")}
+        />
+      )}
 
       <Canvas
         camera={{
@@ -43,7 +62,10 @@ export default function Vehicle() {
           sectionThickness={1}
         />
 
-        <VochoModel onClickPart={handlePartClick} />
+        <VochoModel
+          windowPositions={windows}
+          onWindowSelect={selectWindow}
+        />
 
         <OrbitControls enableDamping minDistance={6} maxDistance={35} />
       </Canvas>
