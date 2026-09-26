@@ -1,16 +1,21 @@
 import { useEffect, useState } from "react";
 import { Canvas } from "@react-three/fiber";
 import { Environment, Grid, OrbitControls } from "@react-three/drei";
+
 import StatusCard from "../components/StatusCard";
 import MenuButton from "../components/MenuButton";
 import VochoModel from "../components/Vehicle3D";
+import Media from "./Media";
+import MiniPlayer from "../components/media/MiniPlayer";
 
 import {
   getVehicleState,
   simulateVehicleState,
   updateVehicleState,
 } from "../services/vehicleSimulator";
+
 import { getWindowState } from "../services/windowService";
+
 import type { VehicleState } from "../types/vehicle";
 
 interface DashboardProps {
@@ -20,7 +25,7 @@ interface DashboardProps {
 export default function Dashboard({ onVehicleClick }: DashboardProps) {
   const [vehicle, setVehicle] = useState<VehicleState>(getVehicleState());
   const [windowPositions] = useState(getWindowState);
-
+  const [showMedia, setShowMedia] = useState(false);
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -33,47 +38,58 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
   }, []);
 
   function toggleLights() {
-    setVehicle(
-      updateVehicleState({
-        lights: !vehicle.lights,
-      }),
-    );
+    setVehicle(updateVehicleState({ lights: !vehicle.lights }));
   }
 
   function toggleWipers() {
-    setVehicle(
-      updateVehicleState({
-        wippers: !vehicle.wippers,
-      }),
-    );
+    setVehicle(updateVehicleState({ wippers: !vehicle.wippers }));
   }
 
   function toggleDoors() {
     setVehicle(
       updateVehicleState({
         doorsLocked: !vehicle.doorsLocked,
-      }),
+      })
     );
+  }
+
+  function openMedia() {
+    setShowMedia(true);
+  }
+
+  function closeMedia() {
+    setShowMedia(false);
+  }
+
+  /*
+   * Pantalla de música
+   *
+   * Importante:
+   * aquí NO renderizamos MiniPlayer.
+   */
+  if (showMedia) {
+    return <Media onBackToDashboard={closeMedia} />;
   }
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col">
-      {/* HEADER */}
 
+      {/* HEADER */}
       <header className="h-20 border-b border-zinc-800 px-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">
             VOCHO <span className="text-red-600">OS</span>
           </h1>
 
-          <p className="text-xs text-zinc-500">Vehicle Operating System</p>
+          <p className="text-xs text-zinc-500">
+            Vehicle Operating System
+          </p>
         </div>
 
         <div className="text-right">
           <div className="text-xl font-semibold">
             {time.toLocaleTimeString([], {
               hour: "2-digit",
-
               minute: "2-digit",
             })}
           </div>
@@ -84,21 +100,21 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
         </div>
       </header>
 
-      {/* MAIN */}
-
+      {/* CONTENIDO */}
       <main className="flex-1 p-6 overflow-auto">
-        {/* 3D VEHICLE */}
 
+        {/* VEHÍCULO */}
         <section className="h-[420px] overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
-          <Canvas
-            camera={{
-              position: [14, 18, 34],
-              fov: 45,
-            }}
-          >
+          <Canvas camera={{ position: [14, 18, 34], fov: 45 }}>
             <ambientLight intensity={1} />
-            <directionalLight position={[5, 5, 5]} intensity={2} />
+
+            <directionalLight
+              position={[5, 5, 5]}
+              intensity={2}
+            />
+
             <Environment preset="city" />
+
             <Grid
               args={[20, 20]}
               cellSize={1}
@@ -106,26 +122,36 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
               sectionSize={5}
               sectionThickness={1}
             />
+
             <VochoModel
               windowPositions={windowPositions}
               lights={vehicle.lights}
               enablePartSelection={false}
               onModelClick={onVehicleClick}
             />
-            <OrbitControls enableDamping minDistance={6} maxDistance={35} />
+
+            <OrbitControls
+              enableDamping
+              minDistance={6}
+              maxDistance={35}
+            />
           </Canvas>
         </section>
 
-        {/* VEHICLE */}
+        {/* STATUS */}
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
 
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <StatusCard
             title="Velocidad"
             value={`${vehicle.speed.toFixed(0)} km/h`}
             icon="🚗"
           />
 
-          <StatusCard title="RPM" value={`${vehicle.rpm}`} icon="⚙️" />
+          <StatusCard
+            title="RPM"
+            value={`${vehicle.rpm}`}
+            icon="⚙️"
+          />
 
           <StatusCard
             title="Batería"
@@ -138,18 +164,23 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
             value={`${vehicle.temperature.toFixed(0)} °C`}
             icon="🌡️"
           />
+
         </section>
 
-        {/* SPEED */}
-
+        {/* VELOCIDAD */}
         <section className="mt-6 rounded-2xl bg-zinc-900 border border-zinc-800 p-8 text-center">
-          <div className="text-zinc-500">VELOCIDAD</div>
+
+          <div className="text-zinc-500">
+            VELOCIDAD
+          </div>
 
           <div className="text-7xl font-bold mt-2">
             {vehicle.speed.toFixed(0)}
           </div>
 
-          <div className="text-zinc-500">KM/H</div>
+          <div className="text-zinc-500">
+            KM/H
+          </div>
 
           <div className="mt-6 w-full bg-zinc-800 rounded-full h-3">
             <div
@@ -157,20 +188,23 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
               style={{
                 width: `${Math.min(
                   vehicle.speed / 1.2,
-
-                  100,
+                  100
                 )}%`,
               }}
             />
           </div>
+
         </section>
 
-        {/* CONTROLS */}
-
+        {/* CONTROLES */}
         <section className="mt-6">
-          <h2 className="text-lg font-bold mb-3">Controles</h2>
+
+          <h2 className="text-lg font-bold mb-3">
+            Controles
+          </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+
             <MenuButton
               icon="💡"
               label="Luces"
@@ -187,39 +221,73 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
 
             <MenuButton
               icon="🔒"
-              label={vehicle.doorsLocked ? "Desbloquear" : "Bloquear"}
+              label={
+                vehicle.doorsLocked
+                  ? "Desbloquear"
+                  : "Bloquear"
+              }
               active={vehicle.doorsLocked}
               onClick={toggleDoors}
             />
 
-            <MenuButton icon="📷" label="Cámara" />
+            <MenuButton
+              icon="📷"
+              label="Cámara"
+            />
+
           </div>
+
         </section>
 
-        {/* SYSTEM */}
-
+        {/* SISTEMA */}
         <section className="mt-6">
-          <h2 className="text-lg font-bold mb-3">Sistema</h2>
+
+          <h2 className="text-lg font-bold mb-3">
+            Sistema
+          </h2>
 
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <MenuButton icon="🎵" label="Música" />
 
-            <MenuButton icon="📍" label="GPS" active={vehicle.gps} />
+            <MenuButton
+              icon="🎵"
+              label="Música"
+              onClick={openMedia}
+            />
 
-            <MenuButton icon="🔧" label="Diagnóstico" />
+            <MenuButton
+              icon="📍"
+              label="GPS"
+              active={vehicle.gps}
+            />
 
-            <MenuButton icon="⚙️" label="Configuración" />
+            <MenuButton
+              icon="🔧"
+              label="Diagnóstico"
+            />
+
+            <MenuButton
+              icon="⚙️"
+              label="Configuración"
+            />
+
           </div>
+
         </section>
+
       </main>
 
-      {/* FOOTER */}
+      {/* MINI PLAYER */}
+      <MiniPlayer
+        onClick={openMedia}
+      />
 
+      {/* FOOTER */}
       <footer className="h-14 border-t border-zinc-800 flex items-center justify-center">
         <span className="text-xs text-zinc-600">
           VOCHO OS • DEV MODE • HARDWARE SIMULADO
         </span>
       </footer>
+
     </div>
   );
 }
