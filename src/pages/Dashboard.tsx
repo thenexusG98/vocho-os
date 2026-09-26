@@ -5,74 +5,29 @@ import { Environment, Grid, OrbitControls } from "@react-three/drei";
 import StatusCard from "../components/StatusCard";
 import MenuButton from "../components/MenuButton";
 import VochoModel from "../components/Vehicle3D";
-import Media from "./Media";
 import MiniPlayer from "../components/media/MiniPlayer";
 
-import {
-  getVehicleState,
-  simulateVehicleState,
-  updateVehicleState,
-} from "../services/vehicleSimulator";
-
-import { getWindowState } from "../services/windowService";
-
-import type { VehicleState } from "../types/vehicle";
+import { useVehicle } from "../store/vehicleStore";
+import type { AppScreen } from "../types/navigation";
 
 interface DashboardProps {
-  onVehicleClick: () => void;
+  onNavigate: (screen: AppScreen) => void;
 }
 
-export default function Dashboard({ onVehicleClick }: DashboardProps) {
-  const [vehicle, setVehicle] = useState<VehicleState>(getVehicleState());
-  const [windowPositions] = useState(getWindowState);
-  const [showMedia, setShowMedia] = useState(false);
+export default function Dashboard({ onNavigate }: DashboardProps) {
+  const { state: vehicle, toggleLights, toggleWipers, toggleDoors } = useVehicle();
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
     const interval = setInterval(() => {
-      setVehicle(simulateVehicleState());
       setTime(new Date());
     }, 1000);
 
     return () => clearInterval(interval);
   }, []);
 
-  function toggleLights() {
-    setVehicle(updateVehicleState({ lights: !vehicle.lights }));
-  }
-
-  function toggleWipers() {
-    setVehicle(updateVehicleState({ wippers: !vehicle.wippers }));
-  }
-
-  function toggleDoors() {
-    setVehicle(
-      updateVehicleState({
-        doorsLocked: !vehicle.doorsLocked,
-      })
-    );
-  }
-
-  function openMedia() {
-    setShowMedia(true);
-  }
-
-  function closeMedia() {
-    setShowMedia(false);
-  }
-
-  /*
-   * Pantalla de música
-   *
-   * Importante:
-   * aquí NO renderizamos MiniPlayer.
-   */
-  if (showMedia) {
-    return <Media onBackToDashboard={closeMedia} />;
-  }
-
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 flex-col bg-black text-white">
 
       {/* HEADER */}
       <header className="h-20 border-b border-zinc-800 px-6 flex items-center justify-between">
@@ -101,7 +56,7 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
       </header>
 
       {/* CONTENIDO */}
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="min-h-0 flex-1 overflow-auto p-6 pb-40">
 
         {/* VEHÍCULO */}
         <section className="h-[420px] overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-950">
@@ -124,10 +79,10 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
             />
 
             <VochoModel
-              windowPositions={windowPositions}
+              windowPositions={vehicle.windows}
               lights={vehicle.lights}
               enablePartSelection={false}
-              onModelClick={onVehicleClick}
+              onModelClick={() => onNavigate("vehicle")}
             />
 
             <OrbitControls
@@ -215,7 +170,7 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
             <MenuButton
               icon="🌧️"
               label="Limpiaparabrisas"
-              active={vehicle.wippers}
+              active={vehicle.wipers}
               onClick={toggleWipers}
             />
 
@@ -233,6 +188,7 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
             <MenuButton
               icon="📷"
               label="Cámara"
+              onClick={() => onNavigate("camera")}
             />
 
           </div>
@@ -251,42 +207,43 @@ export default function Dashboard({ onVehicleClick }: DashboardProps) {
             <MenuButton
               icon="🎵"
               label="Música"
-              onClick={openMedia}
+              onClick={() => onNavigate("media")}
             />
 
             <MenuButton
               icon="📍"
               label="GPS"
               active={vehicle.gps}
+              onClick={() => onNavigate("gps")}
             />
 
             <MenuButton
               icon="🔧"
               label="Diagnóstico"
+              onClick={() => onNavigate("diagnostics")}
             />
 
             <MenuButton
               icon="⚙️"
               label="Configuración"
+              onClick={() => onNavigate("settings")}
             />
 
           </div>
 
         </section>
 
+        <footer className="mt-6 flex h-14 shrink-0 items-center justify-center border-t border-zinc-800">
+          <span className="text-xs text-zinc-600">
+            VOCHO OS • DEV MODE • HARDWARE SIMULADO
+          </span>
+        </footer>
       </main>
 
       {/* MINI PLAYER */}
       <MiniPlayer
-        onClick={openMedia}
+        onOpen={() => onNavigate("media")}
       />
-
-      {/* FOOTER */}
-      <footer className="h-14 border-t border-zinc-800 flex items-center justify-center">
-        <span className="text-xs text-zinc-600">
-          VOCHO OS • DEV MODE • HARDWARE SIMULADO
-        </span>
-      </footer>
 
     </div>
   );

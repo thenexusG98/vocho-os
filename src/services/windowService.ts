@@ -1,41 +1,34 @@
 import type { windowSide, WindowState } from "../types/windows";
 
-let state: WindowState = {
+const DEFAULT_WINDOW_STATE: WindowState = {
   driver: 100,
   passenger: 100,
 };
 
 export function getWindowState(): WindowState {
-  return { ...state };
+  return { ...DEFAULT_WINDOW_STATE };
 }
 
 export function setWindowPosition(
-    side: windowSide, 
-    position: number
+    side: windowSide,
+    position: number,
+    currentState: WindowState = getWindowState(),
 ): WindowState {
+    const boundedPosition = Number.isFinite(position)
+        ? Math.max(0, Math.min(100, position))
+        : currentState[side];
 
-    position = Math.max(0, Math.min(100, position));
-
-    state = {
-        ...state,
-        [side]: position,
-    }
-
-    return { ...state };
+    return { ...currentState, [side]: boundedPosition };
 }
 
 export function moveWindow(
-    side: windowSide, 
-    direction: "up" | "down"
+    side: windowSide,
+    direction: "up" | "down",
+    currentState: WindowState = getWindowState(),
 ): WindowState {
-
-    const current = state[side];
+    const current = currentState[side];
     const step = 5;
+    const newPosition = direction === "up" ? current + step : current - step;
 
-    const newPosition = 
-    direction === "up"
-    ? current + step
-    : current - step;
-
-    return setWindowPosition(side, newPosition);
+    return setWindowPosition(side, newPosition, currentState);
 }

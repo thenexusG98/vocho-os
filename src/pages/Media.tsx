@@ -1,15 +1,16 @@
 import MediaCenter from "../components/media/MediaCenter";
+import type { AppScreen } from "../types/navigation";
 
 interface MediaProps {
-  onBackToDashboard: () => void;
+  onNavigate: (screen: AppScreen) => void;
 }
 
 export default function Media({
-  onBackToDashboard,
+  onNavigate,
 }: MediaProps) {
   return (
     <MediaCenter
-      onBack={onBackToDashboard}
+      onBack={() => onNavigate("dashboard")}
     />
   );
 }

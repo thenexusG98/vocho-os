@@ -57,7 +57,7 @@ export default function MediaCenter({
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="flex h-[calc(100dvh-5rem)] min-h-0 flex-col bg-black text-white">
       {/* HEADER */}
 
       <header className="h-20 border-b border-zinc-800 px-6 flex items-center justify-between">
@@ -81,7 +81,7 @@ export default function MediaCenter({
 
       {/* CONTENT */}
 
-      <main className="flex-1 p-6 overflow-auto">
+      <main className="min-h-0 flex-1 overflow-auto p-6 pb-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* PLAYER */}
 

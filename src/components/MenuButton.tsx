@@ -1,11 +1,11 @@
-interface Props {
+interface MenuButtonProps {
   icon: string;
   label: string;
   active?: boolean;
   onClick?: () => void;
 }
 
-export default function MenuButton({ icon, label, active, onClick }: Props) {
+export default function MenuButton({ icon, label, active, onClick }: MenuButtonProps) {
   return (
     <button
       onClick={onClick}

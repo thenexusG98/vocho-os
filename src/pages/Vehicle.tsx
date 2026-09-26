@@ -5,26 +5,22 @@ import { OrbitControls, Environment, Grid } from "@react-three/drei";
 import VochoModel from "../components/Vehicle3D";
 import WindowControls from "../components/windowControls";
 
-import {
-  getWindowState,
-  moveWindow,
-  setWindowPosition,
-} from "../services/windowService";
-import { getVehicleState, updateVehicleState } from "../services/vehicleSimulator";
-import type { windowSide, WindowState } from "../types/windows";
+import { moveWindow } from "../services/windowService";
+import { useVehicle } from "../store/vehicleStore";
+import type { AppScreen } from "../types/navigation";
+import type { windowSide } from "../types/windows";
 
 interface VehicleProps {
-  onBackToDashboard: () => void;
+  onNavigate: (screen: AppScreen) => void;
 }
 
-export default function Vehicle({ onBackToDashboard }: VehicleProps) {
+export default function Vehicle({ onNavigate }: VehicleProps) {
 
     const [selectedWindow, setSelectedWindow] = useState<windowSide | null>(null);
     const [selectedHeadlight, setSelectedHeadlight] = useState<
       "faro_izquierdo" | "faro_derecho" | null
     >(null);
-    const [lights, setLights] = useState(() => getVehicleState().lights);
-    const [windows, setWindows] = useState<WindowState>(getWindowState());
+    const { state, toggleLights, setWindowPosition } = useVehicle();
 
     function selectWindow(side: windowSide) {
         setSelectedWindow(side);
@@ -33,17 +29,18 @@ export default function Vehicle({ onBackToDashboard }: VehicleProps) {
     function moveSelectedWindow(direction: "up" | "down") {
         if (!selectedWindow) return;
 
-        setWindows(moveWindow(selectedWindow, direction));
+        const nextWindows = moveWindow(selectedWindow, direction, state.windows);
+        setWindowPosition(selectedWindow, nextWindows[selectedWindow]);
     }
 
     function setSelectedWindowPosition(position: number) {
       if (!selectedWindow) return;
 
-      setWindows(setWindowPosition(selectedWindow, position));
+      setWindowPosition(selectedWindow, position);
     }
 
   return (
-    <div className="w-full h-screen bg-black text-white">
+    <div className="h-[calc(100dvh-5rem)] w-full bg-black text-white">
       <div className="absolute top-0 left-0 z-10 p-6">
         <h1 className="text-2xl font-bold">
           VOCHO <span className="text-red-600">OS</span>
@@ -55,7 +52,7 @@ export default function Vehicle({ onBackToDashboard }: VehicleProps) {
       <button
         type="button"
         className="absolute top-6 right-6 z-10 rounded-xl bg-zinc-900 px-4 py-2 text-sm text-white hover:bg-zinc-800"
-        onClick={onBackToDashboard}
+        onClick={() => onNavigate("dashboard")}
       >
         Volver al dashboard
       </button>
@@ -63,7 +60,7 @@ export default function Vehicle({ onBackToDashboard }: VehicleProps) {
       {selectedWindow && (
         <WindowControls
           side={selectedWindow}
-          position={windows[selectedWindow]}
+          position={state.windows[selectedWindow]}
           onUp={() => moveSelectedWindow("up")}
           onDown={() => moveSelectedWindow("down")}
           onFullyDown={() => setSelectedWindowPosition(0)}
@@ -92,14 +89,14 @@ export default function Vehicle({ onBackToDashboard }: VehicleProps) {
         />
 
         <VochoModel
-          windowPositions={windows}
-          lights={lights}
+          windowPositions={state.windows}
+          lights={state.lights}
           selectedHeadlight={selectedHeadlight}
           onWindowSelect={selectWindow}
           onHeadlightSelect={(headlight) => {
             setSelectedWindow(null);
-            const nextLights = !lights;
-            setLights(updateVehicleState({ lights: nextLights }).lights);
+            const nextLights = !state.lights;
+            toggleLights();
             setSelectedHeadlight(nextLights ? headlight : null);
           }}
           onOtherPartSelect={() => {

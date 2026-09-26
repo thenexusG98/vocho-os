@@ -33,7 +33,7 @@ export default function MiniPlayer({
 
   return (
     <div
-      className="fixed bottom-5 left-5 right-5 md:left-auto md:w-[420px] z-50"
+      className="fixed bottom-24 left-5 right-5 z-40 md:left-auto md:w-[420px]"
     >
       <div
         className="flex items-center gap-3 rounded-2xl border border-zinc-800 bg-zinc-950/95 backdrop-blur-xl p-3 shadow-2xl"
